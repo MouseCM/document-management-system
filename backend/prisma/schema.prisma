@@ -1,0 +1,120 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              Int                  @id @default(autoincrement())
+  email           String               @unique
+  name            String
+  password        String
+  departmentRoles UserDepartmentRole[]
+  projectRoles    UserProjectRole[]
+  documents       Document[]           @relation("UserDocuments")
+  auditLogs       AuditLog[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model Department {
+  id        Int                  @id @default(autoincrement())
+  name      String               @unique
+  projects  Project[]
+  userRoles UserDepartmentRole[]
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+}
+
+model Project {
+  id           Int               @id @default(autoincrement())
+  name         String
+  status       String            @default("Active") // Active, Archived
+  departmentId Int
+  department   Department        @relation(fields: [departmentId], references: [id])
+  documents    Document[]
+  userRoles    UserProjectRole[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+enum Role {
+  VIEWER
+  EDITOR
+  ADMIN
+}
+
+model UserDepartmentRole {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  departmentId Int
+  role         Role
+  user         User       @relation(fields: [userId], references: [id])
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([userId, departmentId])
+}
+
+model UserProjectRole {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  projectId Int
+  role      Role
+  user      User    @relation(fields: [userId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Document {
+  id          Int               @id @default(autoincrement())
+  title       String
+  description String?
+  projectId   Int
+  project     Project           @relation(fields: [projectId], references: [id])
+  authorId    Int
+  author      User              @relation("UserDocuments", fields: [authorId], references: [id])
+  versions    DocumentVersion[]
+  auditLogs   AuditLog[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model DocumentVersion {
+  id         Int      @id @default(autoincrement())
+  documentId Int
+  document   Document @relation(fields: [documentId], references: [id])
+  versionNum Int
+  objectName String   // MinIO object name
+  fileSize   Int
+  mimeType   String
+  uploadedBy Int
+  createdAt  DateTime @default(now())
+}
+
+enum AuditAction {
+  CREATE
+  UPLOAD
+  VIEW
+  DOWNLOAD
+  EDIT
+}
+
+model AuditLog {
+  id         Int         @id @default(autoincrement())
+  action     AuditAction
+  userId     Int
+  user       User        @relation(fields: [userId], references: [id])
+  documentId Int?
+  document   Document?   @relation(fields: [documentId], references: [id])
+  ipAddress  String?
+  timestamp  DateTime    @default(now())
+}
+
+model SystemConfig {
+  key   String @id
+  value String
+}
