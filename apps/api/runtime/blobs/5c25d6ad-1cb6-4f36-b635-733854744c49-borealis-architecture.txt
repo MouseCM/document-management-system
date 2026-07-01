@@ -1,0 +1,2 @@
+Service boundary: API, worker, and document store.
+Primary constraints: version history, audit traceability, and retention controls.

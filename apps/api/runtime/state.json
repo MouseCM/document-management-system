@@ -1,0 +1,262 @@
+{
+  "settings": {
+    "retentionDays": 365,
+    "businessHoursStart": "08:00",
+    "businessHoursEnd": "18:00"
+  },
+  "departments": [
+    {
+      "id": "dept-eng",
+      "name": "Engineering"
+    },
+    {
+      "id": "dept-qa",
+      "name": "Quality Assurance"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-apollo",
+      "name": "Apollo Release",
+      "departmentId": "dept-eng",
+      "status": "active"
+    },
+    {
+      "id": "proj-borealis",
+      "name": "Borealis Stabilization",
+      "departmentId": "dept-eng",
+      "status": "active"
+    },
+    {
+      "id": "proj-orion",
+      "name": "Orion Legacy",
+      "departmentId": "dept-qa",
+      "status": "archived"
+    }
+  ],
+  "users": [
+    {
+      "id": "u-alice",
+      "name": "Alice Chen",
+      "email": "alice@corp.example",
+      "departmentId": "dept-eng"
+    },
+    {
+      "id": "u-ben",
+      "name": "Ben Ortiz",
+      "email": "ben@corp.example",
+      "departmentId": "dept-eng"
+    },
+    {
+      "id": "u-cara",
+      "name": "Cara Imani",
+      "email": "cara@corp.example",
+      "departmentId": "dept-qa"
+    },
+    {
+      "id": "u-dan",
+      "name": "Dan Li",
+      "email": "dan@corp.example",
+      "departmentId": "dept-qa"
+    }
+  ],
+  "departmentRoles": [
+    {
+      "userId": "u-alice",
+      "departmentId": "dept-eng",
+      "role": "admin"
+    },
+    {
+      "userId": "u-ben",
+      "departmentId": "dept-eng",
+      "role": "editor"
+    },
+    {
+      "userId": "u-cara",
+      "departmentId": "dept-qa",
+      "role": "viewer"
+    },
+    {
+      "userId": "u-dan",
+      "departmentId": "dept-qa",
+      "role": "admin"
+    }
+  ],
+  "projectRoles": [
+    {
+      "userId": "u-alice",
+      "projectId": "proj-apollo",
+      "role": "admin"
+    },
+    {
+      "userId": "u-ben",
+      "projectId": "proj-apollo",
+      "role": "viewer"
+    },
+    {
+      "userId": "u-ben",
+      "projectId": "proj-borealis",
+      "role": "editor"
+    },
+    {
+      "userId": "u-cara",
+      "projectId": "proj-orion",
+      "role": "viewer"
+    },
+    {
+      "userId": "u-dan",
+      "projectId": "proj-orion",
+      "role": "viewer"
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-apollo-release",
+      "title": "Apollo Release Notes",
+      "description": "Release notes and rollout checklist for Apollo.",
+      "departmentId": "dept-eng",
+      "projectId": "proj-apollo",
+      "ownerUserId": "u-alice",
+      "classification": "internal",
+      "tags": [],
+      "createdAt": "2026-07-01T07:41:43.874Z",
+      "updatedAt": "2026-07-01T07:41:43.874Z",
+      "latestVersionId": "e501099e-36e9-4cff-99c5-78b094350011"
+    },
+    {
+      "id": "doc-borealis-architecture",
+      "title": "Borealis Architecture Overview",
+      "description": "Architecture summary for the stabilization program.",
+      "departmentId": "dept-eng",
+      "projectId": "proj-borealis",
+      "ownerUserId": "u-ben",
+      "classification": "confidential",
+      "tags": [],
+      "createdAt": "2026-07-01T07:41:43.876Z",
+      "updatedAt": "2026-07-01T07:41:43.876Z",
+      "latestVersionId": "5c25d6ad-1cb6-4f36-b635-733854744c49"
+    },
+    {
+      "id": "doc-orion-signoff",
+      "title": "Orion Signoff Memo",
+      "description": "Archived project signoff and final notes.",
+      "departmentId": "dept-qa",
+      "projectId": "proj-orion",
+      "ownerUserId": "u-dan",
+      "classification": "restricted",
+      "tags": [],
+      "createdAt": "2026-07-01T07:41:43.876Z",
+      "updatedAt": "2026-07-01T07:41:43.876Z",
+      "latestVersionId": "d338f401-8963-4ea0-b990-78ae1553596c"
+    },
+    {
+      "id": "5724cf40-3a74-42cb-89cf-8fc822f8d684",
+      "title": "test",
+      "description": "",
+      "departmentId": "dept-eng",
+      "projectId": "proj-apollo",
+      "ownerUserId": "u-alice",
+      "classification": "internal",
+      "tags": [],
+      "createdAt": "2026-07-01T07:43:14.226Z",
+      "updatedAt": "2026-07-01T07:44:44.041Z",
+      "latestVersionId": "8fca5e8f-c473-4149-af67-5588a4c30ade"
+    }
+  ],
+  "versions": [
+    {
+      "id": "784d66e9-0490-48ea-acfd-535715c9b7db",
+      "documentId": "doc-apollo-release",
+      "versionNumber": 1,
+      "fileName": "apollo-release-notes.md",
+      "mimeType": "text/markdown",
+      "summary": "Initial draft",
+      "sizeBytes": 136,
+      "checksum": "24e64baedefc3302bb3bfc4046aae371432f75dbb489348555be2ef120279737",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/784d66e9-0490-48ea-acfd-535715c9b7db-apollo-release-notes.md",
+      "createdBy": "u-alice",
+      "createdAt": "2026-05-01T09:00:00.000Z"
+    },
+    {
+      "id": "e501099e-36e9-4cff-99c5-78b094350011",
+      "documentId": "doc-apollo-release",
+      "versionNumber": 2,
+      "fileName": "apollo-release-notes.md",
+      "mimeType": "text/markdown",
+      "summary": "Added rollback detail",
+      "sizeBytes": 203,
+      "checksum": "17221fb00d971987daca31ed93f4bc231733659b41b6105c0da56d9d21085b27",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/e501099e-36e9-4cff-99c5-78b094350011-apollo-release-notes.md",
+      "createdBy": "u-alice",
+      "createdAt": "2026-05-03T11:30:00.000Z"
+    },
+    {
+      "id": "5c25d6ad-1cb6-4f36-b635-733854744c49",
+      "documentId": "doc-borealis-architecture",
+      "versionNumber": 1,
+      "fileName": "borealis-architecture.txt",
+      "mimeType": "text/plain",
+      "summary": "Base architecture sketch",
+      "sizeBytes": 133,
+      "checksum": "c49b65bf97cc70a24638167bbbed2ea514475e68338fa68c90581a109e266a5a",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/5c25d6ad-1cb6-4f36-b635-733854744c49-borealis-architecture.txt",
+      "createdBy": "u-ben",
+      "createdAt": "2026-05-08T10:15:00.000Z"
+    },
+    {
+      "id": "d338f401-8963-4ea0-b990-78ae1553596c",
+      "documentId": "doc-orion-signoff",
+      "versionNumber": 1,
+      "fileName": "orion-signoff.txt",
+      "mimeType": "text/plain",
+      "summary": "Archived signoff",
+      "sizeBytes": 75,
+      "checksum": "40fef3f018d71f0a76bcba13ff2c55eed2653d004fc6282cb4086b4eaa957b56",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/d338f401-8963-4ea0-b990-78ae1553596c-orion-signoff.txt",
+      "createdBy": "u-dan",
+      "createdAt": "2026-04-18T16:45:00.000Z"
+    },
+    {
+      "id": "1f503218-3e1e-405f-b8ae-2849aaacc849",
+      "documentId": "5724cf40-3a74-42cb-89cf-8fc822f8d684",
+      "versionNumber": 1,
+      "fileName": "cv__Copy_for_limbra_.pdf",
+      "mimeType": "application/pdf",
+      "summary": "Initial version",
+      "sizeBytes": 228768,
+      "checksum": "6e1ec34fcd3e2951b8dacb4cedcde164ff1389e08f2539f79c8c8f38ac28e55b",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/1f503218-3e1e-405f-b8ae-2849aaacc849-cv__Copy_for_limbra_.pdf",
+      "createdBy": "u-alice",
+      "createdAt": "2026-07-01T07:43:14.230Z",
+      "initialVersion": true
+    },
+    {
+      "id": "f6aeea69-5523-40d7-b479-c59a018befbb",
+      "documentId": "5724cf40-3a74-42cb-89cf-8fc822f8d684",
+      "versionNumber": 2,
+      "fileName": "test",
+      "mimeType": "text/plain",
+      "summary": "",
+      "sizeBytes": 0,
+      "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/f6aeea69-5523-40d7-b479-c59a018befbb-test",
+      "createdBy": "u-alice",
+      "createdAt": "2026-07-01T07:43:16.200Z",
+      "initialVersion": false
+    },
+    {
+      "id": "8fca5e8f-c473-4149-af67-5588a4c30ade",
+      "documentId": "5724cf40-3a74-42cb-89cf-8fc822f8d684",
+      "versionNumber": 3,
+      "fileName": "test",
+      "mimeType": "application/pdf",
+      "summary": "",
+      "sizeBytes": 228768,
+      "checksum": "6e1ec34fcd3e2951b8dacb4cedcde164ff1389e08f2539f79c8c8f38ac28e55b",
+      "storagePath": "/Users/chiminhnguyen/Documents/Projects/test/apps/api/runtime/blobs/8fca5e8f-c473-4149-af67-5588a4c30ade-test",
+      "createdBy": "u-alice",
+      "createdAt": "2026-07-01T07:44:44.041Z",
+      "initialVersion": false
+    }
+  ]
+}

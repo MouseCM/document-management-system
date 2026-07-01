@@ -1,0 +1,106 @@
+{
+  "settings": {
+    "retentionDays": 365,
+    "businessHoursStart": "08:00",
+    "businessHoursEnd": "18:00"
+  },
+  "departments": [
+    { "id": "dept-eng", "name": "Engineering" },
+    { "id": "dept-qa", "name": "Quality Assurance" }
+  ],
+  "projects": [
+    { "id": "proj-apollo", "name": "Apollo Release", "departmentId": "dept-eng", "status": "active" },
+    { "id": "proj-borealis", "name": "Borealis Stabilization", "departmentId": "dept-eng", "status": "active" },
+    { "id": "proj-orion", "name": "Orion Legacy", "departmentId": "dept-qa", "status": "archived" }
+  ],
+  "users": [
+    { "id": "u-alice", "name": "Alice Chen", "email": "alice@corp.example", "departmentId": "dept-eng" },
+    { "id": "u-ben", "name": "Ben Ortiz", "email": "ben@corp.example", "departmentId": "dept-eng" },
+    { "id": "u-cara", "name": "Cara Imani", "email": "cara@corp.example", "departmentId": "dept-qa" },
+    { "id": "u-dan", "name": "Dan Li", "email": "dan@corp.example", "departmentId": "dept-qa" }
+  ],
+  "departmentRoles": [
+    { "userId": "u-alice", "departmentId": "dept-eng", "role": "admin" },
+    { "userId": "u-ben", "departmentId": "dept-eng", "role": "editor" },
+    { "userId": "u-cara", "departmentId": "dept-qa", "role": "viewer" },
+    { "userId": "u-dan", "departmentId": "dept-qa", "role": "admin" }
+  ],
+  "projectRoles": [
+    { "userId": "u-alice", "projectId": "proj-apollo", "role": "admin" },
+    { "userId": "u-ben", "projectId": "proj-apollo", "role": "viewer" },
+    { "userId": "u-ben", "projectId": "proj-borealis", "role": "editor" },
+    { "userId": "u-cara", "projectId": "proj-orion", "role": "viewer" },
+    { "userId": "u-dan", "projectId": "proj-orion", "role": "viewer" }
+  ],
+  "documents": [
+    {
+      "id": "doc-apollo-release",
+      "title": "Apollo Release Notes",
+      "description": "Release notes and rollout checklist for Apollo.",
+      "departmentId": "dept-eng",
+      "projectId": "proj-apollo",
+      "ownerUserId": "u-alice",
+      "classification": "internal",
+      "versions": [
+        {
+          "versionNumber": 1,
+          "fileName": "apollo-release-notes.md",
+          "mimeType": "text/markdown",
+          "summary": "Initial draft",
+          "content": "# Apollo Release Notes\n\n## Scope\n- Initial rollout notes\n- Release candidate checklist\n\n## Risks\n- Final regression smoke still pending\n",
+          "createdBy": "u-alice",
+          "createdAt": "2026-05-01T09:00:00.000Z"
+        },
+        {
+          "versionNumber": 2,
+          "fileName": "apollo-release-notes.md",
+          "mimeType": "text/markdown",
+          "summary": "Added rollback detail",
+          "content": "# Apollo Release Notes\n\n## Scope\n- Initial rollout notes\n- Release candidate checklist\n- Added post-release watch window\n\n## Risks\n- Final regression smoke still pending\n- Rollback communication drafted\n",
+          "createdBy": "u-alice",
+          "createdAt": "2026-05-03T11:30:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "doc-borealis-architecture",
+      "title": "Borealis Architecture Overview",
+      "description": "Architecture summary for the stabilization program.",
+      "departmentId": "dept-eng",
+      "projectId": "proj-borealis",
+      "ownerUserId": "u-ben",
+      "classification": "confidential",
+      "versions": [
+        {
+          "versionNumber": 1,
+          "fileName": "borealis-architecture.txt",
+          "mimeType": "text/plain",
+          "summary": "Base architecture sketch",
+          "content": "Service boundary: API, worker, and document store.\nPrimary constraints: version history, audit traceability, and retention controls.\n",
+          "createdBy": "u-ben",
+          "createdAt": "2026-05-08T10:15:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "doc-orion-signoff",
+      "title": "Orion Signoff Memo",
+      "description": "Archived project signoff and final notes.",
+      "departmentId": "dept-qa",
+      "projectId": "proj-orion",
+      "ownerUserId": "u-dan",
+      "classification": "restricted",
+      "versions": [
+        {
+          "versionNumber": 1,
+          "fileName": "orion-signoff.txt",
+          "mimeType": "text/plain",
+          "summary": "Archived signoff",
+          "content": "Orion signoff memo. Archived project status means the record is read-only.\n",
+          "createdBy": "u-dan",
+          "createdAt": "2026-04-18T16:45:00.000Z"
+        }
+      ]
+    }
+  ]
+}

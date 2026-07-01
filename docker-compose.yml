@@ -1,33 +1,80 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: dms_db
+  app:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: adminpassword
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DMS_DATA_DIR: /app/apps/api/runtime
+    volumes:
+      - dms-runtime:/app/apps/api/runtime
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["enterprise"]
+    environment:
       POSTGRES_DB: dms
+      POSTGRES_USER: dms
+      POSTGRES_PASSWORD: dms
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   minio:
     image: minio/minio:latest
-    container_name: dms_minio
+    profiles: ["enterprise"]
+    command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: adminpassword
+      MINIO_ROOT_USER: dms
+      MINIO_ROOT_PASSWORD: dms-password
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
+      - minio-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  nginx:
+    image: nginx:1.27-alpine
+    profiles: ["enterprise"]
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/certs:/etc/nginx/certs:ro
     restart: unless-stopped
 
 volumes:
-  db_data:
-  minio_data:
+  dms-runtime:
+  postgres-data:
+  minio-data:

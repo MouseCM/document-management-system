@@ -1,0 +1,13 @@
+{
+  "name": "enterprise-dms",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node apps/api/server.mjs",
+    "dev": "node apps/api/server.mjs",
+    "test": "node --test",
+    "cleanup-retention": "node apps/api/scripts/cleanup-retention.mjs",
+    "seed-reset": "node apps/api/scripts/reset-demo-data.mjs"
+  }
+}
