@@ -78,6 +78,15 @@ The demo implementation in this repository uses a file-backed runtime store so t
 
 For demo recovery, the system can reset all seeded state and audit history in one step. The reset flow recreates the runtime store, clears the append-only audit file, and rebuilds the default sample documents and users.
 
+### Document Management Workflow
+
+The standard operational workflow in the application follows these steps:
+1. **Create Document**: An Editor or Admin creates a new document by providing initial content and classification. A new version is created automatically.
+2. **Version Control (Upload)**: Authors (Editors/Admins) update the document by uploading a new version. The system handles this immutably, preserving the original versions.
+3. **Compare / Diff**: Users can view changes between any two versions using the built-in diff tool (supports Text, PDF, and Word documents).
+4. **Audit Review**: Every view, download, creation, and edit generates an append-only audit event. Admins can review these trails for governance.
+5. **Archiving & Retention**: Once a project is archived, its documents become read-only. A background cleanup job enforces retention policies by deleting obsolete versions.
+
 ## 4. Technology Choices
 
 ### API

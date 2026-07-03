@@ -986,3 +986,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .version-item .version-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
   .toast-stack { right: 10px; top: 68px; }
 }
+
+
+i[data-lucide] { width: 1.2em; height: 1.2em; vertical-align: middle; stroke-width: 2; }
+.lucide-sm { width: 1em; height: 1em; }

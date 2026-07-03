@@ -483,7 +483,7 @@ const server = createServer(async (req, res) => {
     if (pathname === '/config/retention' && req.method === 'GET') return await handleConfigRetention(req, res);
     if (pathname === '/admin/settings' && req.method === 'PATCH') return await handleUpdateSettings(req, res);
     if (pathname === '/admin/retention/cleanup' && req.method === 'POST') return await handleRetention(req, res);
-    if (pathname === '/admin/reset-demo' && req.method === 'POST') return await handleResetDemo(req, res);
+    if (pathname === '/admin/delete-all' && req.method === 'POST') return await handleResetDemo(req, res);
 
     // Static files
     if (

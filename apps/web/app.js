@@ -65,7 +65,7 @@ function esc(v) {
 
 function formatDate(v) {
   if (!v) return '—';
-  return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+  return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(v));
 }
 
 function formatBytes(b) {
@@ -324,7 +324,7 @@ function upsertDocInList(doc) {
 // ═══════════════════════════════════════════════════════════════
 function patch(id, html) {
   const el = document.getElementById(id);
-  if (el) el.innerHTML = html;
+  if (el) el.innerHTML = html; if (window.lucide) setTimeout(() => lucide.createIcons(), 0);
 }
 
 function patchText(id, text) {
@@ -341,11 +341,11 @@ function patchClass(id, cls, on) {
 // SHELL (built once)
 // ═══════════════════════════════════════════════════════════════
 const TABS = [
-  { id: 'documents', icon: '📄', label: 'Documents' },
-  { id: 'create',    icon: '✏️',  label: 'Create'    },
-  { id: 'diff',      icon: '⚡',  label: 'Diff'      },
-  { id: 'audit',     icon: '🔍',  label: 'Audit Log' },
-  { id: 'settings',  icon: '⚙️',  label: 'Settings'  },
+  { id: 'documents', icon: '<i data-lucide="file-text"></i>', label: 'Documents' },
+  { id: 'create',    icon: '<i data-lucide="edit-2"></i>',  label: 'Create'    },
+  { id: 'diff',      icon: '<i data-lucide="zap"></i>',  label: 'Diff'      },
+  { id: 'audit',     icon: '<i data-lucide="search"></i>',  label: 'Audit Log' },
+  { id: 'settings',  icon: '<i data-lucide="settings"></i>',  label: 'Settings'  },
 ];
 
 function buildShell() {
@@ -495,11 +495,11 @@ function updateSessionPanel() {
           <div style="margin-top:5px">${buildBadge('badge', state.currentUser.departmentName || state.currentUser.departmentId)}</div>
         </div>
         <div class="btn-row">
-          <button class="btn sm" data-action="reset-demo" ${state.loading.action === 'reset-demo' ? 'disabled' : ''}>
-            ${state.loading.action === 'reset-demo' ? '<span class="spinner sm"></span> Resetting…' : '↺ Reset demo'}
+          <button class="btn sm" data-action="delete-all" ${state.loading.action === 'delete-all' ? 'disabled' : ''}>
+            ${state.loading.action === 'delete-all' ? '<span class="spinner sm"></span> Resetting…' : '<i data-lucide="refresh-cw" class="lucide-sm"></i> Delete All'}
           </button>
           <button class="btn sm danger" data-action="logout" ${state.loading.action === 'logout' ? 'disabled' : ''}>
-            ${state.loading.action === 'logout' ? '<span class="spinner sm"></span>' : '⏻ Sign out'}
+            ${state.loading.action === 'logout' ? '<span class="spinner sm"></span>' : '<i data-lucide="power" class="lucide-sm"></i> Sign out'}
           </button>
         </div>
       </div>
@@ -515,7 +515,7 @@ function updateSessionPanel() {
           </select>
         </div>
         <button class="btn primary" data-action="login" ${state.loading.action === 'login' ? 'disabled' : ''}>
-          ${state.loading.action === 'login' ? '<span class="spinner sm"></span> Signing in…' : '→ Open session'}
+          ${state.loading.action === 'login' ? '<span class="spinner sm"></span> Signing in…' : '<i data-lucide="arrow-right" class="lucide-sm"></i> Open session'}
         </button>
         <p style="font-size:11px;color:var(--text-dim);margin:0">Select a seeded account to explore the document workspace.</p>
       </div>
@@ -547,7 +547,7 @@ function updateDocListSection() {
   if (!docs.length) {
     patch('doc-list-body', `
       <div class="empty-state">
-        <div class="empty-icon">📂</div>
+        <div class="empty-icon"><i data-lucide="folder"></i></div>
         <strong>${state.currentUser ? 'No documents match filters' : 'Sign in to see documents'}</strong>
         <p>${state.currentUser ? 'Widen your search or classification filter.' : 'Pick a seeded user from the Session panel.'}</p>
       </div>
@@ -608,7 +608,7 @@ function switchTab(tab) {
 function updateTabContent() {
   const el = document.getElementById('tab-content');
   if (!el) return;
-  el.innerHTML = buildTabContent(state.activeTab);
+  el.innerHTML = buildTabContent(state.activeTab); if (window.lucide) setTimeout(() => lucide.createIcons(), 0);
   el.classList.remove('tab-content-enter');
   void el.offsetWidth; // force reflow
   el.classList.add('tab-content-enter');
@@ -632,7 +632,7 @@ function buildDocumentsTab() {
       <div class="panel">
         <div class="panel-body">
           <div class="empty-state">
-            <div class="empty-icon">🔐</div>
+            <div class="empty-icon"><i data-lucide="lock"></i></div>
             <strong>Sign in to access documents</strong>
             <p>Select a seeded user in the Session panel on the left to explore the document workspace.</p>
           </div>
@@ -644,7 +644,7 @@ function buildDocumentsTab() {
       <div class="panel">
         <div class="panel-body">
           <div class="empty-state">
-            <div class="empty-icon">📋</div>
+            <div class="empty-icon"><i data-lucide="clipboard"></i></div>
             <strong>Choose a document</strong>
             <p>Select a document from the list on the left to view its details, version history, and upload a new revision.</p>
           </div>
@@ -674,8 +674,8 @@ function buildDocumentsTab() {
         <h2>Document Detail</h2>
         <div class="btn-row">
           <span class="chip ${loadingDoc ? 'syncing' : 'live'}">${loadingDoc ? 'Fetching' : 'Ready'}</span>
-          <button class="btn sm" data-action="refresh">↺ Refresh</button>
-          <button class="btn sm" data-action="cleanup">🗑 Retention cleanup</button>
+          <button class="btn sm" data-action="refresh"><i data-lucide="refresh-cw" class="lucide-sm"></i> Refresh</button>
+          <button class="btn sm" data-action="cleanup"><i data-lucide="trash-2" class="lucide-sm"></i> Retention cleanup</button>
         </div>
       </div>
       <div class="panel-body">
@@ -751,7 +751,7 @@ function buildVersionTimeline(doc, versions) {
           <div class="version-actions">
             <button class="btn sm" data-action="download-version" data-id="${esc(v.id)}"
               ${state.loading.action === `dl:${v.id}` ? 'disabled' : ''}>
-              ${state.loading.action === `dl:${v.id}` ? '<span class="spinner sm"></span>' : '↓'} Download
+              ${state.loading.action === `dl:${v.id}` ? '<span class="spinner sm"></span>' : '<i data-lucide="arrow-down" class="lucide-sm"></i>'} Download
             </button>
             <button class="btn sm ghost" data-action="use-from" data-id="${esc(v.id)}">From</button>
             <button class="btn sm ghost" data-action="use-to"   data-id="${esc(v.id)}">To</button>
@@ -765,7 +765,7 @@ function buildVersionTimeline(doc, versions) {
 
 function buildUploadForm() {
   if (!state.currentUser) return `<div class="empty-state"><div class="empty-icon">🔒</div><strong>Sign in to upload</strong></div>`;
-  if (!state.selectedDocument) return `<div class="empty-state"><div class="empty-icon">📄</div><strong>Open a document first</strong></div>`;
+  if (!state.selectedDocument) return `<div class="empty-state"><div class="empty-icon"><i data-lucide="file-text"></i></div><strong>Open a document first</strong></div>`;
   return `
     <form id="upload-form" class="stack">
       <div class="field">
@@ -797,7 +797,7 @@ function buildCreateTab() {
     return `
       <div class="panel"><div class="panel-body">
         <div class="empty-state">
-          <div class="empty-icon">🔐</div>
+          <div class="empty-icon"><i data-lucide="lock"></i></div>
           <strong>Sign in to create documents</strong>
           <p>The create panel requires an active session.</p>
         </div>
@@ -862,7 +862,7 @@ function buildDiffTab() {
     return `
       <div class="panel"><div class="panel-body">
         <div class="empty-state">
-          <div class="empty-icon">⚡</div>
+          <div class="empty-icon"><i data-lucide="zap"></i></div>
           <strong>No document selected</strong>
           <p>Select a document with at least two versions to compare revisions.</p>
         </div>
@@ -897,7 +897,7 @@ function buildDiffTab() {
               </select>
             </div>
             <button class="btn primary" data-action="run-diff" ${loading ? 'disabled' : ''}>
-              ${loading ? '<span class="spinner sm"></span> Comparing…' : '⚡ Compare'}
+              ${loading ? '<span class="spinner sm"></span> Comparing…' : '<i data-lucide="zap"></i> Compare'}
             </button>
             <div class="mode-toggle">
               <button class="mode-btn${state.diffMode === 'unified' ? ' active' : ''}" data-action="diff-mode" data-mode="unified">Unified</button>
@@ -962,7 +962,7 @@ function buildAuditTab() {
         <h2>Audit Log</h2>
         <div class="btn-row">
           <span class="chip ${state.loading.audit ? 'syncing' : 'active'}">${pg.total} events</span>
-          <button class="btn sm" data-action="reload-audit">↺ Refresh</button>
+          <button class="btn sm" data-action="reload-audit"><i data-lucide="refresh-cw" class="lucide-sm"></i> Refresh</button>
         </div>
       </div>
       <div class="panel-body" style="padding:0">
@@ -1001,7 +1001,7 @@ function buildAuditTab() {
         ` : `
           <div class="panel-body">
             <div class="empty-state">
-              <div class="empty-icon">📋</div>
+              <div class="empty-icon"><i data-lucide="clipboard"></i></div>
               <strong>No audit events recorded yet</strong>
               <p>Events appear as you interact with the system.</p>
             </div>
@@ -1068,16 +1068,16 @@ function buildSettingsTab() {
                 <div class="settings-sub">Deletes non-latest versions older than the retention window.</div>
               </div>
               <button class="btn sm danger" data-action="cleanup" ${!state.currentUser || state.loading.action === 'cleanup' ? 'disabled' : ''}>
-                ${state.loading.action === 'cleanup' ? '<span class="spinner sm"></span> Running…' : '🗑 Run now'}
+                ${state.loading.action === 'cleanup' ? '<span class="spinner sm"></span> Running…' : '<i data-lucide="trash-2" class="lucide-sm"></i> Run now'}
               </button>
             </div>
             <div class="settings-row">
               <div>
-                <div class="settings-label">Reset demo data</div>
+                <div class="settings-label">Delete All data</div>
                 <div class="settings-sub">Wipes all runtime state and reloads from seed data. Audit log is cleared.</div>
               </div>
-              <button class="btn sm danger" data-action="reset-demo" ${!state.currentUser || state.loading.action === 'reset-demo' ? 'disabled' : ''}>
-                ${state.loading.action === 'reset-demo' ? '<span class="spinner sm"></span> Resetting…' : '↺ Reset demo'}
+              <button class="btn sm danger" data-action="delete-all" ${!state.currentUser || state.loading.action === 'delete-all' ? 'disabled' : ''}>
+                ${state.loading.action === 'delete-all' ? '<span class="spinner sm"></span> Resetting…' : '<i data-lucide="refresh-cw" class="lucide-sm"></i> Delete All'}
               </button>
             </div>
           </div>
@@ -1157,9 +1157,9 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  if (action === 'reset-demo') {
-    await withAction('reset-demo', 'Resetting demo…', async () => {
-      await api('/admin/reset-demo', { method: 'POST' });
+  if (action === 'delete-all') {
+    await withAction('delete-all', 'Deleting all…', async () => {
+      await api('/admin/delete-all', { method: 'POST' });
       state.selectedDocument = null;
       state.selectedDocumentId = '';
       state.auditLoaded = false;
@@ -1363,7 +1363,7 @@ document.addEventListener('submit', async (e) => {
 // ═══════════════════════════════════════════════════════════════
 // BOOTSTRAP
 // ═══════════════════════════════════════════════════════════════
-document.getElementById('app').innerHTML = buildShell();
+document.getElementById('app').innerHTML = buildShell(); if (window.lucide) setTimeout(() => lucide.createIcons(), 0);
 updateHeader();
 updateSessionPanel();
 updateDocListSection();
