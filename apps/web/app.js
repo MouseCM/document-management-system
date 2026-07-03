@@ -21,8 +21,12 @@ const state = {
 
   // Diff
   diffMode: 'unified',        // 'unified' | 'sidebyside'
+  pdfExtractMode: 'text',     // 'text' | 'raw' — only relevant for PDF documents
   compareHtmlUnified: '',
   compareHtmlSideBySide: '',
+  compareHtmlUnifiedRaw: '',
+  compareHtmlSideBySideRaw: '',
+  compareIsPdf: false,
   compareSummary: null,
   compareTruncated: false,
 
@@ -174,14 +178,14 @@ async function loadContext({ selectFirst = false, refreshDoc = false } = {}) {
   const t0 = performance.now();
   try {
     const { payload } = await api('/context');
-    state.users      = payload.users || [];
-    state.projects   = payload.projects || [];
+    state.users = payload.users || [];
+    state.projects = payload.projects || [];
     state.currentUser = payload.user || null;
-    state.documents  = payload.documents || [];
-    state.retention  = payload.retention || {};
-    state.server     = payload.server || state.server;
+    state.documents = payload.documents || [];
+    state.retention = payload.retention || {};
+    state.server = payload.server || state.server;
     state.accessTime = payload.server?.requestAccessTime || state.accessTime;
-    state.context    = { lastSyncedAt: payload.server?.serverTime || new Date().toISOString(), requestMs: Math.round(performance.now() - t0) };
+    state.context = { lastSyncedAt: payload.server?.serverTime || new Date().toISOString(), requestMs: Math.round(performance.now() - t0) };
     if (!state.currentUser) {
       state.selectedDocument = null;
       state.selectedDocumentId = '';
@@ -242,7 +246,7 @@ async function selectDocument(docId, { source = 'manual' } = {}) {
     state.selectedDocumentId = payload.document.id;
     const versions = payload.versions || [];
     const fromV = versions[versions.length - 2] || versions[0] || null;
-    const toV   = versions[versions.length - 1] || null;
+    const toV = versions[versions.length - 1] || null;
     state.selectedVersionIds = { from: fromV?.id || '', to: toV?.id || '' };
     state.compareHtmlUnified = '';
     state.compareHtmlSideBySide = '';
@@ -263,6 +267,9 @@ async function loadDiff() {
   if (!state.selectedDocument || !state.selectedVersionIds.from || !state.selectedVersionIds.to) {
     state.compareHtmlUnified = '';
     state.compareHtmlSideBySide = '';
+    state.compareHtmlUnifiedRaw = '';
+    state.compareHtmlSideBySideRaw = '';
+    state.compareIsPdf = false;
     state.compareSummary = null;
     return;
   }
@@ -274,7 +281,11 @@ async function loadDiff() {
     const { payload } = await api(`/documents/${state.selectedDocument.id}/diff?${params}`);
     state.compareHtmlUnified = payload.htmlUnified || '';
     state.compareHtmlSideBySide = payload.htmlSideBySide || '';
+    state.compareHtmlUnifiedRaw = payload.htmlUnifiedRaw || '';
+    state.compareHtmlSideBySideRaw = payload.htmlSideBySideRaw || '';
+    state.compareIsPdf = !!(payload.diff?.isPdf);
     state.compareSummary = payload.diff?.summary || null;
+    state.compareRawSummary = payload.diff?.rawSummary || null;
     state.compareTruncated = payload.diff?.truncated || false;
   } catch (err) {
     pushToast('error', err.message);
@@ -342,10 +353,10 @@ function patchClass(id, cls, on) {
 // ═══════════════════════════════════════════════════════════════
 const TABS = [
   { id: 'documents', icon: '<i data-lucide="file-text"></i>', label: 'Documents' },
-  { id: 'create',    icon: '<i data-lucide="edit-2"></i>',  label: 'Create'    },
-  { id: 'diff',      icon: '<i data-lucide="zap"></i>',  label: 'Diff'      },
-  { id: 'audit',     icon: '<i data-lucide="search"></i>',  label: 'Audit Log' },
-  { id: 'settings',  icon: '<i data-lucide="settings"></i>',  label: 'Settings'  },
+  { id: 'create', icon: '<i data-lucide="edit-2"></i>', label: 'Create' },
+  { id: 'diff', icon: '<i data-lucide="zap"></i>', label: 'Diff' },
+  { id: 'audit', icon: '<i data-lucide="search"></i>', label: 'Audit Log' },
+  { id: 'settings', icon: '<i data-lucide="settings"></i>', label: 'Settings' },
 ];
 
 function buildShell() {
@@ -355,7 +366,7 @@ function buildShell() {
 
       <header class="topbar">
         <div class="brand">
-          <h1>Enterprise Document Management</h1>
+          <h1>Document Management</h1>
           <p>Version-controlled · ABAC enforced · Immutable audit trails</p>
         </div>
         <div class="topbar-tools" id="header-tools">
@@ -538,7 +549,7 @@ function updateDocListSection() {
   if (state.loading.context && !state.documents.length) {
     patch('doc-list-body', `
       <div class="stack">
-        ${[0,1,2,3].map(() => `<div class="skeleton-card"><div class="skeleton-line md"></div><div class="skeleton-line sm"></div></div>`).join('')}
+        ${[0, 1, 2, 3].map(() => `<div class="skeleton-card"><div class="skeleton-line md"></div><div class="skeleton-line sm"></div></div>`).join('')}
       </div>
     `);
     return;
@@ -617,11 +628,11 @@ function updateTabContent() {
 function buildTabContent(tab) {
   switch (tab) {
     case 'documents': return buildDocumentsTab();
-    case 'create':    return buildCreateTab();
-    case 'diff':      return buildDiffTab();
-    case 'audit':     return buildAuditTab();
-    case 'settings':  return buildSettingsTab();
-    default:          return '';
+    case 'create': return buildCreateTab();
+    case 'diff': return buildDiffTab();
+    case 'audit': return buildAuditTab();
+    case 'settings': return buildSettingsTab();
+    default: return '';
   }
 }
 
@@ -820,8 +831,8 @@ function buildCreateTab() {
             <label>Project *</label>
             <select name="projectId" ${!projects.length ? 'disabled' : ''}>
               ${projects.length
-                ? projects.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${esc(p.departmentName || p.departmentId)})</option>`).join('')
-                : '<option value="">No active projects in your department</option>'}
+      ? projects.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${esc(p.departmentName || p.departmentId)})</option>`).join('')
+      : '<option value="">No active projects in your department</option>'}
             </select>
           </div>
           <div class="field">
@@ -868,12 +879,21 @@ function buildDiffTab() {
         </div>
       </div></div>`;
   }
-  const doc      = state.selectedDocument;
+  const doc = state.selectedDocument;
   const versions = doc.versions || [];
-  const loading  = state.loading.diff;
+  const loading = state.loading.diff;
   const hasCompare = !!(state.compareHtmlUnified || state.compareHtmlSideBySide);
+  const isPdf = !!state.compareIsPdf;
 
-  const activeHtml = state.diffMode === 'sidebyside' ? state.compareHtmlSideBySide : state.compareHtmlUnified;
+  // Choose the correct HTML block based on layout mode + extract mode
+  const useRaw = isPdf && state.pdfExtractMode === 'raw';
+  const activeHtml = state.diffMode === 'sidebyside'
+    ? (useRaw ? state.compareHtmlSideBySideRaw : state.compareHtmlSideBySide)
+    : (useRaw ? state.compareHtmlUnifiedRaw : state.compareHtmlUnified);
+
+  const activeSummary = (useRaw && state.compareRawSummary)
+    ? state.compareRawSummary
+    : state.compareSummary;
 
   return `
     <div class="panel">
@@ -897,37 +917,46 @@ function buildDiffTab() {
               </select>
             </div>
             <button class="btn primary" data-action="run-diff" ${loading ? 'disabled' : ''}>
-              ${loading ? '<span class="spinner sm"></span> Comparing…' : '<i data-lucide="zap"></i> Compare'}
+              ${loading ? '<span class="spinner sm"></span> Comparing\u2026' : '<i data-lucide="zap"></i> Compare'}
             </button>
             <div class="mode-toggle">
               <button class="mode-btn${state.diffMode === 'unified' ? ' active' : ''}" data-action="diff-mode" data-mode="unified">Unified</button>
               <button class="mode-btn${state.diffMode === 'sidebyside' ? ' active' : ''}" data-action="diff-mode" data-mode="sidebyside">Side-by-side</button>
             </div>
+            ${isPdf && hasCompare ? `
+            <div class="mode-toggle" style="margin-left:4px" title="PDF extraction mode">
+              <button class="mode-btn${state.pdfExtractMode === 'text' ? ' active' : ''}" data-action="extract-mode" data-mode="text"
+                title="Clean text extracted from PDF (human-readable)">\uD83D\uDCC4 Text</button>
+              <button class="mode-btn${state.pdfExtractMode === 'raw' ? ' active' : ''}" data-action="extract-mode" data-mode="raw"
+                title="Raw binary dump of the PDF byte stream (unfiltered latin1)">\u26A1 Raw</button>
+            </div>` : ''}
           </div>
 
-          ${state.compareSummary ? `
+          ${activeSummary ? `
             <div class="diff-stats">
-              <span class="diff-stat"><span class="diff-stat-dot added"></span> <strong>${state.compareSummary.added}</strong> added</span>
-              <span class="diff-stat"><span class="diff-stat-dot removed"></span> <strong>${state.compareSummary.removed}</strong> removed</span>
-              <span class="diff-stat"><span class="diff-stat-dot same"></span> <strong>${state.compareSummary.same}</strong> unchanged</span>
-              ${state.compareTruncated ? `<span style="color:var(--warning);font-size:11px">⚠ Large file — fast diff mode</span>` : ''}
+              <span class="diff-stat"><span class="diff-stat-dot added"></span> <strong>${activeSummary.added}</strong> added</span>
+              <span class="diff-stat"><span class="diff-stat-dot removed"></span> <strong>${activeSummary.removed}</strong> removed</span>
+              <span class="diff-stat"><span class="diff-stat-dot same"></span> <strong>${activeSummary.same}</strong> unchanged</span>
+              ${state.compareTruncated ? `<span style="color:var(--warning);font-size:11px">\u26A0 Large file \u2014 fast diff mode</span>` : ''}
+              ${useRaw ? `<span style="color:var(--warning);font-size:11px;margin-left:8px">\u26A1 Raw binary mode \u2014 binary streams shown unfiltered</span>` : ''}
             </div>
           ` : ''}
 
           <div class="diff-view-container" style="position:relative">
             <div class="diff-view-header">
-              <span>${esc(doc.classification)} · ${esc(doc.projectStatus)}</span>
+              <span>${esc(doc.classification)} \u00b7 ${esc(doc.projectStatus)}</span>
               <span style="font-size:11px;color:var(--text-dim)">
                 ${state.diffMode === 'sidebyside' ? 'Side-by-side view' : 'Unified view'}
+                ${isPdf && hasCompare ? ` \u00b7 ${useRaw ? 'Raw binary' : 'Text extracted'}` : ''}
               </span>
             </div>
             <div class="${state.diffMode === 'sidebyside' ? '' : 'diff-unified'}">
               ${activeHtml
-                ? activeHtml
-                : `<div class="empty-state" style="margin:16px;border:0;background:transparent"><div class="empty-icon">📊</div><strong>Select two versions and click Compare</strong></div>`
-              }
+      ? activeHtml
+      : `<div class="empty-state" style="margin:16px;border:0;background:transparent"><div class="empty-icon">\uD83D\uDCCA</div><strong>Select two versions and click Compare</strong></div>`
+    }
             </div>
-            ${loading ? `<div class="panel-overlay"><span class="spinner lg"></span> Rendering diff…</div>` : ''}
+            ${loading ? `<div class="panel-overlay"><span class="spinner lg"></span> Rendering diff\u2026</div>` : ''}
           </div>
         </div>
       </div>
@@ -950,7 +979,7 @@ function buildAuditTab() {
     return `
       <div class="panel"><div class="panel-body">
         <div class="stack">
-          ${[0,1,2,3,4].map(() => `<div class="skeleton-card"><div class="skeleton-line sm"></div><div class="skeleton-line md"></div></div>`).join('')}
+          ${[0, 1, 2, 3, 4].map(() => `<div class="skeleton-card"><div class="skeleton-line sm"></div><div class="skeleton-line md"></div></div>`).join('')}
         </div>
       </div></div>`;
   }
@@ -983,7 +1012,7 @@ function buildAuditTab() {
                 ${state.auditEvents.map(e => `
                   <tr>
                     <td>${esc(formatDate(e.createdAt))}</td>
-                    <td><span class="action-badge ${esc(e.action)}">${esc(e.action.replace(/_/g,' '))}</span></td>
+                    <td><span class="action-badge ${esc(e.action)}">${esc(e.action.replace(/_/g, ' '))}</span></td>
                     <td>${esc(e.userId || '—')}</td>
                     <td>${esc(e.targetType || '—')}: <code style="font-size:10px;opacity:.7">${esc((e.targetId || '').slice(0, 12))}…</code></td>
                     <td><span class="decision-badge ${esc(e.decision || 'allowed')}">${esc(e.decision || '—')}</span></td>
@@ -1215,15 +1244,21 @@ document.addEventListener('click', async (e) => {
   if (action === 'run-diff') {
     // Sync selects
     const fromEl = document.getElementById('compare-from');
-    const toEl   = document.getElementById('compare-to');
+    const toEl = document.getElementById('compare-to');
     if (fromEl) state.selectedVersionIds.from = fromEl.value;
-    if (toEl)   state.selectedVersionIds.to   = toEl.value;
+    if (toEl) state.selectedVersionIds.to = toEl.value;
     await loadDiff();
     return;
   }
 
   if (action === 'diff-mode') {
     state.diffMode = actionEl.dataset.mode;
+    updateTabContent();
+    return;
+  }
+
+  if (action === 'extract-mode') {
+    state.pdfExtractMode = actionEl.dataset.mode;
     updateTabContent();
     return;
   }
@@ -1256,7 +1291,7 @@ document.addEventListener('click', async (e) => {
 
   if (action === 'save-biz-hours') {
     const start = document.getElementById('biz-start-input')?.value;
-    const end   = document.getElementById('biz-end-input')?.value;
+    const end = document.getElementById('biz-end-input')?.value;
     if (!start || !end) { pushToast('error', 'Enter valid times.'); return; }
     await withAction('save-biz-hours', 'Saving…', async () => {
       const { payload } = await api('/admin/settings', { method: 'PATCH', body: JSON.stringify({ businessHoursStart: start, businessHoursEnd: end }) });
@@ -1277,9 +1312,9 @@ document.addEventListener('change', (e) => {
     return;
   }
   if (id === 'classification-filter') { state.filters.classification = e.target.value; updateDocListSection(); return; }
-  if (id === 'status-filter')         { state.filters.projectStatus  = e.target.value; updateDocListSection(); return; }
+  if (id === 'status-filter') { state.filters.projectStatus = e.target.value; updateDocListSection(); return; }
   if (id === 'compare-from') { state.selectedVersionIds.from = e.target.value; return; }
-  if (id === 'compare-to')   { state.selectedVersionIds.to   = e.target.value; return; }
+  if (id === 'compare-to') { state.selectedVersionIds.to = e.target.value; return; }
 });
 
 // ── input events (search) ────────────────────────────────────────

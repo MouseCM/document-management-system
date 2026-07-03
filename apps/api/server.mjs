@@ -360,10 +360,26 @@ async function handleDiff(req, res, documentId, searchParams) {
   // Attach version numbers so renderers can label panes
   diffResult.fromVersion = fromVersion.versionNumber;
   diffResult.toVersion = toVersion.versionNumber;
+
+  // For PDFs: render raw (unfiltered) HTML in addition to the clean text HTML.
+  let htmlUnifiedRaw = null;
+  let htmlSideBySideRaw = null;
+  if (diffResult.isPdf && diffResult.rawChanges) {
+    const rawResult = {
+      ...diffResult,
+      changes: diffResult.rawChanges,
+      summary: diffResult.rawSummary,
+    };
+    htmlUnifiedRaw = renderUnifiedDiff(rawResult);
+    htmlSideBySideRaw = renderSideBySideDiff(rawResult);
+  }
+
   sendJson(res, 200, {
     diff: diffResult,
     htmlUnified: renderUnifiedDiff(diffResult),
     htmlSideBySide: renderSideBySideDiff(diffResult),
+    htmlUnifiedRaw,
+    htmlSideBySideRaw,
   });
 }
 
