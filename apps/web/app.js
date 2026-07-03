@@ -21,14 +21,16 @@ const state = {
 
   // Diff
   diffMode: 'unified',        // 'unified' | 'sidebyside'
-  pdfExtractMode: 'text',     // 'text' | 'raw' — only relevant for PDF documents
+  diffLogMode: 'text',        // 'text' | 'raw' — text extraction vs full raw bytes
   compareHtmlUnified: '',
   compareHtmlSideBySide: '',
   compareHtmlUnifiedRaw: '',
   compareHtmlSideBySideRaw: '',
   compareIsPdf: false,
   compareSummary: null,
+  compareRawSummary: null,
   compareTruncated: false,
+  compareRawTruncated: false,
 
   // Audit (server-side pagination)
   auditEvents: [],
@@ -271,6 +273,8 @@ async function loadDiff() {
     state.compareHtmlSideBySideRaw = '';
     state.compareIsPdf = false;
     state.compareSummary = null;
+    state.compareRawSummary = null;
+    state.compareRawTruncated = false;
     return;
   }
   state.loading.diff = true;
@@ -287,6 +291,7 @@ async function loadDiff() {
     state.compareSummary = payload.diff?.summary || null;
     state.compareRawSummary = payload.diff?.rawSummary || null;
     state.compareTruncated = payload.diff?.truncated || false;
+    state.compareRawTruncated = payload.diff?.rawTruncated || false;
   } catch (err) {
     pushToast('error', err.message);
   } finally {
@@ -882,18 +887,17 @@ function buildDiffTab() {
   const doc = state.selectedDocument;
   const versions = doc.versions || [];
   const loading = state.loading.diff;
-  const hasCompare = !!(state.compareHtmlUnified || state.compareHtmlSideBySide);
-  const isPdf = !!state.compareIsPdf;
+  const hasCompare = !!(state.compareHtmlUnified || state.compareHtmlSideBySide || state.compareHtmlUnifiedRaw || state.compareHtmlSideBySideRaw);
 
-  // Choose the correct HTML block based on layout mode + extract mode
-  const useRaw = isPdf && state.pdfExtractMode === 'raw';
+  const useRaw = state.diffLogMode === 'raw';
   const activeHtml = state.diffMode === 'sidebyside'
     ? (useRaw ? state.compareHtmlSideBySideRaw : state.compareHtmlSideBySide)
     : (useRaw ? state.compareHtmlUnifiedRaw : state.compareHtmlUnified);
 
-  const activeSummary = (useRaw && state.compareRawSummary)
+  const activeSummary = useRaw && state.compareRawSummary
     ? state.compareRawSummary
     : state.compareSummary;
+  const activeTruncated = useRaw ? state.compareRawTruncated : state.compareTruncated;
 
   return `
     <div class="panel">
@@ -923,12 +927,12 @@ function buildDiffTab() {
               <button class="mode-btn${state.diffMode === 'unified' ? ' active' : ''}" data-action="diff-mode" data-mode="unified">Unified</button>
               <button class="mode-btn${state.diffMode === 'sidebyside' ? ' active' : ''}" data-action="diff-mode" data-mode="sidebyside">Side-by-side</button>
             </div>
-            ${isPdf && hasCompare ? `
-            <div class="mode-toggle" style="margin-left:4px" title="PDF extraction mode">
-              <button class="mode-btn${state.pdfExtractMode === 'text' ? ' active' : ''}" data-action="extract-mode" data-mode="text"
-                title="Clean text extracted from PDF (human-readable)">\uD83D\uDCC4 Text</button>
-              <button class="mode-btn${state.pdfExtractMode === 'raw' ? ' active' : ''}" data-action="extract-mode" data-mode="raw"
-                title="Raw binary dump of the PDF byte stream (unfiltered latin1)">\u26A1 Raw</button>
+            ${hasCompare ? `
+            <div class="mode-toggle diff-log-toggle" title="Diff log mode">
+              <button class="mode-btn${state.diffLogMode === 'text' ? ' active' : ''}" data-action="diff-log-mode" data-mode="text"
+                title="Text-only diff — extracted readable content">\uD83D\uDCC4 Text</button>
+              <button class="mode-btn${state.diffLogMode === 'raw' ? ' active' : ''}" data-action="diff-log-mode" data-mode="raw"
+                title="Raw diff — full file bytes, every difference">\u26A1 Raw</button>
             </div>` : ''}
           </div>
 
@@ -937,8 +941,8 @@ function buildDiffTab() {
               <span class="diff-stat"><span class="diff-stat-dot added"></span> <strong>${activeSummary.added}</strong> added</span>
               <span class="diff-stat"><span class="diff-stat-dot removed"></span> <strong>${activeSummary.removed}</strong> removed</span>
               <span class="diff-stat"><span class="diff-stat-dot same"></span> <strong>${activeSummary.same}</strong> unchanged</span>
-              ${state.compareTruncated ? `<span style="color:var(--warning);font-size:11px">\u26A0 Large file \u2014 fast diff mode</span>` : ''}
-              ${useRaw ? `<span style="color:var(--warning);font-size:11px;margin-left:8px">\u26A1 Raw binary mode \u2014 binary streams shown unfiltered</span>` : ''}
+              ${activeTruncated ? `<span style="color:var(--warning);font-size:11px">\u26A0 Large file \u2014 fast diff mode</span>` : ''}
+              ${useRaw ? `<span style="color:var(--warning);font-size:11px;margin-left:8px">\u26A1 Raw mode \u2014 full file bytes, all differences shown</span>` : ''}
             </div>
           ` : ''}
 
@@ -947,7 +951,7 @@ function buildDiffTab() {
               <span>${esc(doc.classification)} \u00b7 ${esc(doc.projectStatus)}</span>
               <span style="font-size:11px;color:var(--text-dim)">
                 ${state.diffMode === 'sidebyside' ? 'Side-by-side view' : 'Unified view'}
-                ${isPdf && hasCompare ? ` \u00b7 ${useRaw ? 'Raw binary' : 'Text extracted'}` : ''}
+                ${hasCompare ? ` \u00b7 ${useRaw ? 'Raw diff log' : 'Text diff log'}` : ''}
               </span>
             </div>
             <div class="${state.diffMode === 'sidebyside' ? '' : 'diff-unified'}">
@@ -1257,8 +1261,8 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  if (action === 'extract-mode') {
-    state.pdfExtractMode = actionEl.dataset.mode;
+  if (action === 'diff-log-mode') {
+    state.diffLogMode = actionEl.dataset.mode;
     updateTabContent();
     return;
   }

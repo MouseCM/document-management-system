@@ -361,18 +361,14 @@ async function handleDiff(req, res, documentId, searchParams) {
   diffResult.fromVersion = fromVersion.versionNumber;
   diffResult.toVersion = toVersion.versionNumber;
 
-  // For PDFs: render raw (unfiltered) HTML in addition to the clean text HTML.
-  let htmlUnifiedRaw = null;
-  let htmlSideBySideRaw = null;
-  if (diffResult.isPdf && diffResult.rawChanges) {
-    const rawResult = {
-      ...diffResult,
-      changes: diffResult.rawChanges,
-      summary: diffResult.rawSummary,
-    };
-    htmlUnifiedRaw = renderUnifiedDiff(rawResult);
-    htmlSideBySideRaw = renderSideBySideDiff(rawResult);
-  }
+  // Raw (unfiltered) HTML — full file bytes, every difference included.
+  const rawResult = {
+    ...diffResult,
+    changes: diffResult.rawChanges,
+    summary: diffResult.rawSummary,
+  };
+  const htmlUnifiedRaw = renderUnifiedDiff(rawResult);
+  const htmlSideBySideRaw = renderSideBySideDiff(rawResult);
 
   sendJson(res, 200, {
     diff: diffResult,

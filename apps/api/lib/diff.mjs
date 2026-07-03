@@ -250,15 +250,23 @@ export function extractComparableText(version) {
   return { kind: 'text', text: bytes.toString('utf8') };
 }
 
-/** Same as extractComparableText but forces raw (unfiltered latin1) for PDFs. */
+/** Full file bytes as latin1 — no format-specific filtering or extraction. */
+function extractFileRaw(filePath) {
+  const bytes = readFileSync(filePath);
+  return bytes.toString('latin1');
+}
+
+/** Same as extractComparableText but returns the unfiltered file byte stream. */
 function extractComparableRaw(version) {
   const fileName = version.fileName || '';
   const mimeType = version.mimeType || '';
   if (fileName.endsWith('.pdf') || mimeType === 'application/pdf') {
     return { kind: 'pdf-raw', text: extractPdfRaw(version.storagePath) };
   }
-  // For non-PDF files the raw extraction is identical to the text extraction.
-  return extractComparableText(version);
+  if (fileName.endsWith('.docx') || mimeType.includes('word')) {
+    return { kind: 'docx-raw', text: extractFileRaw(version.storagePath) };
+  }
+  return { kind: 'raw-bytes', text: extractFileRaw(version.storagePath) };
 }
 
 export function compareVersions(fromVersion, toVersion) {
@@ -272,26 +280,25 @@ export function compareVersions(fromVersion, toVersion) {
     (toVersion.fileName || '').endsWith('.pdf') ||
     toVersion.mimeType === 'application/pdf';
 
-  // For PDFs, also compute the raw (unfiltered) diff so the UI can offer both views.
-  let rawChanges = null;
-  let rawSummary = null;
-  if (isPdf) {
-    const leftRaw = extractComparableRaw(fromVersion);
-    const rightRaw = extractComparableRaw(toVersion);
-    rawChanges = buildDiff(leftRaw.text, rightRaw.text);
-    rawSummary = {
-      added: rawChanges.filter((c) => c.type === 'added').length,
-      removed: rawChanges.filter((c) => c.type === 'removed').length,
-      same: rawChanges.filter((c) => c.type === 'same').length,
-    };
-  }
+  // Raw (unfiltered) diff — full file bytes so every change is visible.
+  const leftRaw = extractComparableRaw(fromVersion);
+  const rightRaw = extractComparableRaw(toVersion);
+  const rawChanges = buildDiff(leftRaw.text, rightRaw.text);
+  const rawSummary = {
+    added: rawChanges.filter((c) => c.type === 'added').length,
+    removed: rawChanges.filter((c) => c.type === 'removed').length,
+    same: rawChanges.filter((c) => c.type === 'same').length,
+  };
+  const rawKind = leftRaw.kind === rightRaw.kind ? leftRaw.kind : `${leftRaw.kind}:${rightRaw.kind}`;
 
   return {
     fromVersionId: fromVersion.id,
     toVersionId: toVersion.id,
     kind: left.kind === right.kind ? left.kind : `${left.kind}:${right.kind}`,
+    rawKind,
     isPdf,
     truncated: left.text.split('\n').length > MAX_LCS_LINES || right.text.split('\n').length > MAX_LCS_LINES,
+    rawTruncated: leftRaw.text.split('\n').length > MAX_LCS_LINES || rightRaw.text.split('\n').length > MAX_LCS_LINES,
     summary: {
       added: changes.filter((c) => c.type === 'added').length,
       removed: changes.filter((c) => c.type === 'removed').length,
@@ -302,6 +309,8 @@ export function compareVersions(fromVersion, toVersion) {
     rawSummary,
     leftText: left.text,
     rightText: right.text,
+    leftRawText: leftRaw.text,
+    rightRawText: rightRaw.text,
   };
 }
 
